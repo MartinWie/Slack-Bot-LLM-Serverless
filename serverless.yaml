@@ -1,0 +1,57 @@
+service: SlackBot
+projectDir: ..
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  runtime: python3.11
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:PutLogEvents
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource:
+        - arn:aws:logs:eu-west-1:*:log-group:/aws/lambda/${self:service}-${sls:stage}-Main
+
+functions:
+  main:
+    name: ${self:service}-${sls:stage}-Main
+    timeout: 900
+    handler: handlers/main.lambda_handler
+    events:
+      - http:
+          path: /slack
+          method: any
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            methods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - POST
+    environment:
+      REGION: eu-west-1
+      STAGE: ${sls:stage}
+      SERVICE_NAME: ${self:service}
+
+package:
+  exclude:
+    - '**'
+  include:
+    - ./handlers/**
+    - ./config/**
+    - ./utils/**
+
+plugins:
+  - serverless-pydeps
