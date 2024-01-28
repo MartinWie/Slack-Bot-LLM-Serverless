@@ -124,3 +124,15 @@ pytest -m unit
 
 1) Create a test file for your respective handler in our "tests" folder. The naming convention is test_<handlername> (main.py -> test_main.py)
 2) In this file you create a function and add the Python decorator (annotations) @pytest.mark.<marker_name>. We currently have two markers.
+
+
+## Todos's
+
+- Initial project setup
+- First bot deploy
+- First working basic response
+- First OpenAI response
+- Add threading
+- Implement token logic (endless chat without token limit)
+- Implement special commands for prompts
+- Add support for other LLMs
