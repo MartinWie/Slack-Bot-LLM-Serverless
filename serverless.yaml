@@ -6,7 +6,7 @@ provider:
   name: aws
   stage: ${opt:stage, 'dev'}
   region: eu-west-1
-  runtime: python3.11
+  runtime: python3.10
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -20,7 +20,7 @@ provider:
 functions:
   main:
     name: ${self:service}-${sls:stage}-Main
-    timeout: 900
+    timeout: 30
     handler: handlers/main.lambda_handler
     events:
       - http:
