@@ -20,6 +20,5 @@ if SLACK_BOT_TOKEN is None:
         LogLevel.ERROR,
         "SLACK_BOT_TOKEN is not set in the environment variables. It needs to be set for this lambda function.",
     )
-    raise Exception("SLACK_BOT_TOKEN is not set in the environment variables.")
 else:
     log_to_aws(LogLevel.INFO, "SLACK_BOT_TOKEN loaded from environment variables.")
