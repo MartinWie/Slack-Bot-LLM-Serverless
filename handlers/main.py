@@ -3,6 +3,7 @@ from util.logger import log_to_aws, LogLevel
 
 def lambda_handler(event, context):
     log_to_aws(LogLevel.INFO, "Lambda function invoked!")
+    log_to_aws(LogLevel.INFO, f"Received event: {event}")
 
     if 'type' in event and event['type'] == 'url_verification':
         log_to_aws(LogLevel.INFO, "URL verification event received.")
@@ -16,7 +17,7 @@ def lambda_handler(event, context):
                 },
                 "body": challenge
             }
-    
+
     return {
         "statusCode": 200,
         "body": "ok"
