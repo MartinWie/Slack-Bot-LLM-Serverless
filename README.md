@@ -141,8 +141,7 @@ pytest -m unit
 
 ## Todos's
 
-- First bot deploy
-- First working basic response
+- Go figure message edits(better for streaming messages later)
 - First OpenAI response
 - Add threading
 - Implement token logic (endless chat without token limit)
