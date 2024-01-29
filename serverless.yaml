@@ -37,7 +37,7 @@ package:
   include:
     - ./handlers/**
     - ./config/**
-    - ./utils/**
+    - ./util/**
 
 plugins:
   - serverless-pydeps
