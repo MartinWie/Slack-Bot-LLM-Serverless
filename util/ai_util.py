@@ -5,6 +5,7 @@ import sys
 import openai
 import tiktoken
 
+from config.config import OPENAI_API_KEY
 from util.logger import log_to_aws, LogLevel
 
 
@@ -21,13 +22,14 @@ def openai_request(
         )
         exit()
     try:
+        openai.api_key = OPENAI_API_KEY
         response = openai.ChatCompletion.create(
             model=model,
             temperature=temperature,
             stream=True,
             messages=[
                 {"role": "system",
-                 "content": "Help answer user questions, provide solutions step by step."},
+                 "content": "Help answer user questions, provide solutions step by step. Keep it short and concise."},
                 {"role": "user", "content": prompt}
             ]
         )
