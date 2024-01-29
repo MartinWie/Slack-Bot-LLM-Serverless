@@ -17,8 +17,8 @@ def lambda_handler(event, context):
                 "body": challenge
             }
         else:
-            log_to_aws(LogLevel.ERROR, "No challenge in event.")
+            log_to_aws(LogLevel.INFO, "No challenge in event. Normal processing....")
             return {
-                "statusCode": 400,
-                "body": "Bad Request"
+                "statusCode": 200,
+                "body": "ok"
             }
