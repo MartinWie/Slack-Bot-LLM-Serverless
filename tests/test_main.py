@@ -11,4 +11,4 @@ def test_lambda_handler():
     result = lambda_handler(event, context)
 
     # Add your assertions to check the output of the lambda_handler function
-    assert result["response"] is not None
+    assert result["body"] is not None
