@@ -3,6 +3,7 @@ import os
 
 from six.moves import urllib
 
+from util.ai_util import openai_request, print_and_return_streamed_response
 from util.logger import log_to_aws, LogLevel
 
 
@@ -28,7 +29,6 @@ def send_text_response(event, response_text):
 
 def lambda_handler(event, context):
     log_to_aws(LogLevel.INFO, "Lambda function invoked!")
-    log_to_aws(LogLevel.INFO, f"Received event: {event}")
 
     # Check if 'body' exists in the event
     if 'body' in event:
@@ -52,7 +52,9 @@ def lambda_handler(event, context):
             if 'event' in body and 'type' in body['event'] and body['event']['type'] == 'message':
                 message_text = body['event'].get('text', '')
                 if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
-                    send_text_response(body, "ok")
+                    response = openai_request(message_text)
+                    answer = print_and_return_streamed_response(response)
+                    send_text_response(body, answer)
                     return {
                         "statusCode": 200,
                         "body": "Response sent"
