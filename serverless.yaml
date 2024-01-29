@@ -24,22 +24,8 @@ functions:
     handler: handlers/main.lambda_handler
     events:
       - http:
-          path: /slack
+          path: /
           method: any
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-            methods:
-              - GET
-              - HEAD
-              - OPTIONS
-              - POST
     environment:
       REGION: eu-west-1
       STAGE: ${sls:stage}
