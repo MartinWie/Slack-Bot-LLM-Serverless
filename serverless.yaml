@@ -10,12 +10,15 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - logs:PutLogEvents
         - logs:CreateLogGroup
         - logs:CreateLogStream
         - logs:PutLogEvents
-      Resource:
-        - arn:aws:logs:eu-west-1:*:log-group:/aws/lambda/${self:service}-${sls:stage}-Main
+      Resource: "arn:aws:logs:eu-west-1:*:*"
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+      Resource: "arn:aws:lambda:*:*:function:${self:service}-${sls:stage}*"
 
 functions:
   main:
@@ -26,6 +29,15 @@ functions:
       - http:
           path: /
           method: any
+    environment:
+      REGION: eu-west-1
+      STAGE: ${sls:stage}
+      SERVICE_NAME: ${self:service}
+
+  asyncProcessor:
+    name: ${self:service}-${sls:stage}-AsyncProcessor
+    handler: handlers/async_processor.lambda_handler
+    timeout: 120
     environment:
       REGION: eu-west-1
       STAGE: ${sls:stage}
