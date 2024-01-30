@@ -141,8 +141,6 @@ pytest -m unit
 
 ## Todos's
 
-- First OpenAI response
-- Only respond to messages form humans
 - Error handling „Leela müde, Leela schlafen“
 - Go figure message edits(better for streaming messages later)
 - Add threading

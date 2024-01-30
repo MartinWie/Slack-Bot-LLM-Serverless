@@ -34,6 +34,14 @@ def lambda_handler(event, context):
 
     # Check if 'event' exists in the parsed body and process it
     if 'event' in event_body:
+        # Check if the event is from a bot
+        if 'bot_id' in event_body['event']:
+            log_to_aws(LogLevel.INFO, "Event from a bot, skipping processing")
+            return {
+                "statusCode": 200,
+                "body": "Event from bot, no action taken"
+            }
+
         message_text = event_body['event'].get('text', '')
         # Check if the message mentions the bot (assumed bot ID: 'U06GBCG8E9F' or name 'Leela')
         if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
