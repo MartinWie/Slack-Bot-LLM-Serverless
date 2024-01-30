@@ -1,3 +1,4 @@
+import json
 import os
 
 from six.moves import urllib
@@ -10,13 +11,11 @@ from util.logger import log_to_aws, LogLevel
 def send_text_response(event, response_text):
     SLACK_URL = "https://slack.com/api/chat.postMessage"
     channel_id = event["event"]["channel"]
-    user = event["event"]["user"]
     bot_token = os.environ.get("SLACK_BOT_TOKEN")
     data = urllib.parse.urlencode({
         "token": bot_token,
         "channel": channel_id,
         "text": response_text,
-        "user": user,
         "link_names": True
     })
     data = data.encode("ascii")
@@ -30,14 +29,17 @@ def lambda_handler(event, context):
     log_to_aws(LogLevel.INFO, "Async Processor Lambda function invoked!")
     log_to_aws(LogLevel.INFO, f"Event: {event}")
 
-    # Check if 'event' exists and process it
-    if 'event' in event:
-        # Your existing Slack processing logic here
-        message_text = event['event'].get('text', '')
+    # Parse the incoming event body (assuming it's JSON)
+    event_body = json.loads(event.get('body', '{}'))
+
+    # Check if 'event' exists in the parsed body and process it
+    if 'event' in event_body:
+        message_text = event_body['event'].get('text', '')
+        # Check if the message mentions the bot (assumed bot ID: 'U06GBCG8E9F' or name 'Leela')
         if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
             response = openai_request(message_text)
             answer = print_and_return_streamed_response(response)
-            send_text_response(event, answer)
+            send_text_response(event_body, answer)
 
     return {
         "statusCode": 200,
