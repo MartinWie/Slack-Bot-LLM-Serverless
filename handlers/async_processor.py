@@ -26,30 +26,39 @@ def send_text_response(event, response_text):
 
 
 def lambda_handler(event, context):
-    log_to_aws(LogLevel.INFO, "Async Processor Lambda function invoked!")
-    log_to_aws(LogLevel.INFO, f"Event: {event}")
+    try:
+        log_to_aws(LogLevel.INFO, "Async Processor Lambda function invoked!")
+        log_to_aws(LogLevel.INFO, f"Event: {event}")
 
-    # Parse the incoming event body (assuming it's JSON)
-    event_body = json.loads(event.get('body', '{}'))
+        # Parse the incoming event body (assuming it's JSON)
+        event_body = json.loads(event.get('body', '{}'))
 
-    # Check if 'event' exists in the parsed body and process it
-    if 'event' in event_body:
-        # Check if the event is from a bot
-        if 'bot_id' in event_body['event']:
-            log_to_aws(LogLevel.INFO, "Event from a bot, skipping processing")
-            return {
-                "statusCode": 200,
-                "body": "Event from bot, no action taken"
-            }
+        # Check if 'event' exists in the parsed body and process it
+        if 'event' in event_body:
+            # Check if the event is from a bot
+            if 'bot_id' in event_body['event']:
+                log_to_aws(LogLevel.INFO, "Event from a bot, skipping processing")
+                return {
+                    "statusCode": 200,
+                    "body": "Event from bot, no action taken"
+                }
 
-        message_text = event_body['event'].get('text', '')
-        # Check if the message mentions the bot (assumed bot ID: 'U06GBCG8E9F' or name 'Leela')
-        if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
-            response = openai_request(message_text)
-            answer = print_and_return_streamed_response(response)
-            send_text_response(event_body, answer)
+            message_text = event_body['event'].get('text', '')
+            # Check if the message mentions the bot (assumed bot ID: 'U06GBCG8E9F' or name 'Leela')
+            if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
+                response = openai_request(message_text)
+                answer = print_and_return_streamed_response(response)
+                send_text_response(event_body, answer)
 
-    return {
-        "statusCode": 200,
-        "body": "Async processing completed"
-    }
+        return {
+            "statusCode": 200,
+            "body": "Async processing completed"
+        }
+
+    except Exception as e:
+        log_to_aws(LogLevel.ERROR, f"Error occurred: {e}")
+        send_text_response(event, "Leela müde, Leela schlafen")
+        return {
+            "statusCode": 500,
+            "body": "Error occurred in processing"
+        }
