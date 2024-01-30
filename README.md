@@ -146,6 +146,7 @@ pytest -m unit
 - Use full thread as input(make sure to use max tokens)
 - Introduce env var file + check
 - Update dependencies
+- Switch to Slack SDK?
 - Image generation
 - Intention mapping(chat, ticket, image)
 - Implement special commands for prompts
