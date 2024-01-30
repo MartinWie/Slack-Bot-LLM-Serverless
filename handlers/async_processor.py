@@ -92,21 +92,18 @@ def lambda_handler(event, context):
 
 def update_slack_message_and_return_streamed_response(response, channel_id, message_ts):
     final_output = ""
-    word_count = 0
 
     for event in response:
         if event['choices'][0]['delta'].get('content') is not None:
             event_text = event['choices'][0]['delta']['content']
-            # Process the response character by character
-            for char in event_text:
-                if char.isspace() or char == '\n':
-                    # Count words based on spaces and newlines
-                    word_count += 1
 
+            for char in event_text:
                 final_output += char
 
-                # Update the Slack message at a word threshold, adjusting to avoid rate limits
-                if (char.isspace() or char == '\n') and (word_count % 3 == 0):
+                # Check for sentence-ending punctuation or new lines
+                if char in ['.', '!', '?', ','] or char == '\n':
                     update_slack_message(channel_id, message_ts, final_output.strip())
+
+    update_slack_message(channel_id, message_ts, final_output.strip())
 
     return final_output
