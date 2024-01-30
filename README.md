@@ -141,9 +141,16 @@ pytest -m unit
 
 ## Todos's
 
-- Go figure message edits(better for streaming messages later)
 - First OpenAI response
+- Only respond to messages form humans
+- Error handling „Leela müde, Leela schlafen“
+- Go figure message edits(better for streaming messages later)
+- Introduce env var file + check
 - Add threading
+- Use full thread as input(make sure to use max tokens)
 - Implement token logic (endless chat without token limit)
 - Implement special commands for prompts
+- Update dependencies
+- Image generation
+- Intention mapping(chat, ticket, image)
 - Add support for other LLMs
