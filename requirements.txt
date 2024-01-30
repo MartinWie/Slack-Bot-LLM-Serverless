@@ -1,3 +1,4 @@
 openai==0.27.8
 tiktoken
 six
+boto3
