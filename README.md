@@ -141,7 +141,6 @@ pytest -m unit
 
 ## Todos's
 
-- Go figure message edits(better for streaming messages later)
 - Add threading
 - Use full thread as input(make sure to use max tokens)
 - Introduce env var file + check

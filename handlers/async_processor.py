@@ -92,10 +92,21 @@ def lambda_handler(event, context):
 
 def print_and_return_streamed_response(response, channel_id, message_ts):
     final_output = ""
+    word_count = 0
+
     for event in response:
         if event['choices'][0]['delta'].get('content') is not None:
             event_text = event['choices'][0]['delta']['content']
-            final_output += event_text
-            update_slack_message(channel_id, message_ts, final_output)
+            # Splitting by space to count and process words
+            words = event_text.split(' ')
+
+            for word in words:
+                if word:
+                    final_output += word + ' '
+                    word_count += 1
+
+                # Update the Slack message at a word threshold, adjusting to avoid rate limits
+                if word_count % 5 == 0:
+                    update_slack_message(channel_id, message_ts, final_output.strip())
 
     return final_output
