@@ -97,16 +97,16 @@ def update_slack_message_and_return_streamed_response(response, channel_id, mess
     for event in response:
         if event['choices'][0]['delta'].get('content') is not None:
             event_text = event['choices'][0]['delta']['content']
-            # Splitting by space to count and process words
-            words = event_text.split(' ')
-
-            for word in words:
-                if word:
-                    final_output += word + ' '
+            # Process the response character by character
+            for char in event_text:
+                if char.isspace() or char == '\n':
+                    # Count words based on spaces and newlines
                     word_count += 1
 
+                final_output += char
+
                 # Update the Slack message at a word threshold, adjusting to avoid rate limits
-                if word_count % 5 == 0:
+                if (char.isspace() or char == '\n') and (word_count % 3 == 0):
                     update_slack_message(channel_id, message_ts, final_output.strip())
 
     return final_output
