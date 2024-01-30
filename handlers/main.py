@@ -1,66 +1,34 @@
 import json
 import os
 
-from six.moves import urllib
+import boto3
 
-from util.ai_util import openai_request, print_and_return_streamed_response
 from util.logger import log_to_aws, LogLevel
 
-
-# Function to send a text response to Slack
-def send_text_response(event, response_text):
-    SLACK_URL = "https://slack.com/api/chat.postMessage"
-    channel_id = event["event"]["channel"]
-    user = event["event"]["user"]
-    bot_token = os.environ.get("SLACK_BOT_TOKEN")
-    data = urllib.parse.urlencode({
-        "token": bot_token,
-        "channel": channel_id,
-        "text": response_text,
-        "user": user,
-        "link_names": True
-    })
-    data = data.encode("ascii")
-    request = urllib.request.Request(SLACK_URL, data=data, method="POST")
-    request.add_header("Content-Type", "application/x-www-form-urlencoded")
-    res = urllib.request.urlopen(request).read()
-    log_to_aws(LogLevel.INFO, f'Response from Slack: {res}')
+# Lambda client for invoking another function
+lambda_client = boto3.client('lambda')
 
 
 def lambda_handler(event, context):
-    log_to_aws(LogLevel.INFO, "Lambda function invoked!")
+    log_to_aws(LogLevel.INFO, "Main Lambda function invoked!")
 
-    # Check if 'body' exists in the event
-    if 'body' in event:
-        # Parse the event body from JSON
-        body = json.loads(event['body'])
+    service_name = os.environ.get("SERVICE_NAME")
+    stage = os.environ.get("STAGE")
+    async_processor_function_name = f"{service_name}-{stage}-AsyncProcessor"
 
-        if 'type' in body and body['type'] == 'url_verification':
-            log_to_aws(LogLevel.INFO, "URL verification event received.")
-            if 'challenge' in body:
-                challenge = body['challenge']
-                log_to_aws(LogLevel.INFO, f"Responding with challenge: {challenge}")
-                return {
-                    "statusCode": 200,
-                    "headers": {
-                        "Content-Type": "text/plain"
-                    },
-                    "body": challenge
-                }
+    # Asynchronously invoke the async_processor Lambda function
+    try:
+        lambda_client.invoke(
+            FunctionName=async_processor_function_name,
+            InvocationType='Event',  # 'Event' for asynchronous invocation
+            Payload=json.dumps(event)
+        )
+        log_to_aws(LogLevel.INFO, "Successfully invoked async processor.")
+    except Exception as e:
+        log_to_aws(LogLevel.ERROR, f"Error invoking async processor: {e}")
 
-        elif 'type' in body and body['type'] == 'event_callback':
-            if 'event' in body and 'type' in body['event'] and body['event']['type'] == 'message':
-                message_text = body['event'].get('text', '')
-                if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
-                    response = openai_request(message_text)
-                    answer = print_and_return_streamed_response(response)
-                    send_text_response(body, answer)
-                    return {
-                        "statusCode": 200,
-                        "body": "Response sent"
-                    }
-
+    # Return response immediately
     return {
         "statusCode": 200,
-        "body": "Event type not supported"
+        "body": json.dumps("Request received, processing started")
     }
