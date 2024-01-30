@@ -1,28 +1,47 @@
 import json
 import os
+import urllib.request
 
-from six.moves import urllib
-
-from util.ai_util import openai_request, print_and_return_streamed_response
+from util.ai_util import openai_request
 from util.logger import log_to_aws, LogLevel
+
+
+# Generic function to send a request to Slack API
+def send_slack_request(url, data):
+    bot_token = os.environ.get("SLACK_BOT_TOKEN")
+    data = urllib.parse.urlencode(data).encode("ascii")
+    request = urllib.request.Request(url, data=data, method="POST")
+    request.add_header("Authorization", f"Bearer {bot_token}")
+    request.add_header("Content-Type", "application/x-www-form-urlencoded")
+
+    with urllib.request.urlopen(request) as response:
+        return response.read()
+
+
+# Function to update a Slack message
+def update_slack_message(channel_id, timestamp, new_text):
+    SLACK_UPDATE_URL = "https://slack.com/api/chat.update"
+    data = {
+        "channel": channel_id,
+        "ts": timestamp,
+        "text": new_text
+    }
+    response = send_slack_request(SLACK_UPDATE_URL, data)
+    log_to_aws(LogLevel.INFO, f'Response from Slack on updating message: {response}')
+    return response
 
 
 # Function to send a text response to Slack
 def send_text_response(event, response_text):
     SLACK_URL = "https://slack.com/api/chat.postMessage"
     channel_id = event["event"]["channel"]
-    bot_token = os.environ.get("SLACK_BOT_TOKEN")
-    data = urllib.parse.urlencode({
-        "token": bot_token,
+    data = {
+        "token": os.environ.get("SLACK_BOT_TOKEN"),
         "channel": channel_id,
         "text": response_text,
         "link_names": True
-    })
-    data = data.encode("ascii")
-    request = urllib.request.Request(SLACK_URL, data=data, method="POST")
-    request.add_header("Content-Type", "application/x-www-form-urlencoded")
-    res = urllib.request.urlopen(request).read()
-    log_to_aws(LogLevel.INFO, f'Response from Slack: {res}')
+    }
+    return send_slack_request(SLACK_URL, data)
 
 
 def lambda_handler(event, context):
@@ -44,11 +63,18 @@ def lambda_handler(event, context):
                 }
 
             message_text = event_body['event'].get('text', '')
+            channel_id = event_body['event']['channel']
             # Check if the message mentions the bot (assumed bot ID: 'U06GBCG8E9F' or name 'Leela')
             if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
+                # Send "Thinking..." message and process the message
+                thinking_message_response = send_text_response(event_body, "Thinking...")
+                thinking_message_ts = json.loads(thinking_message_response)['ts']
+
                 response = openai_request(message_text)
-                answer = print_and_return_streamed_response(response)
-                send_text_response(event_body, answer)
+                answer = print_and_return_streamed_response(response, channel_id, thinking_message_ts)
+
+                # Final update to replace "Thinking..." with the actual response
+                update_slack_message(channel_id, thinking_message_ts, answer)
 
         return {
             "statusCode": 200,
@@ -62,3 +88,14 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": "Error occurred in processing"
         }
+
+
+def print_and_return_streamed_response(response, channel_id, message_ts):
+    final_output = ""
+    for event in response:
+        if event['choices'][0]['delta'].get('content') is not None:
+            event_text = event['choices'][0]['delta']['content']
+            final_output += event_text
+            update_slack_message(channel_id, message_ts, final_output)
+
+    return final_output

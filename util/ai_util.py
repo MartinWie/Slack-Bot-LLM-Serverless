@@ -1,6 +1,5 @@
 import json
 import string
-import sys
 
 import openai
 import tiktoken
@@ -62,21 +61,6 @@ def openai_request(
     except Exception as e:
         log_to_aws(LogLevel.INFO, f"An unexpected error occurred:{e}")
         return None
-
-
-def print_and_return_streamed_response(response):
-    # create variables to collect the stream of events
-    collected_events = []
-    final_output = ""
-    # iterate through the stream of events
-    for event in response:
-        collected_events.append(event)  # save the event response
-        if event['choices'][0]['delta'].get('content') is not None:
-            event_text = event['choices'][0]['delta']['content']  # extract the text
-            sys.stdout.write(event_text)
-            sys.stdout.flush()  # ensures output is displayed immediately
-            final_output += event_text
-    return final_output
 
 
 # Function to prepend as much of the conversation history as possible to the input string
