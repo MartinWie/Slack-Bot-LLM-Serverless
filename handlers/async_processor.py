@@ -71,7 +71,7 @@ def lambda_handler(event, context):
                 thinking_message_ts = json.loads(thinking_message_response)['ts']
 
                 response = openai_request(message_text)
-                answer = print_and_return_streamed_response(response, channel_id, thinking_message_ts)
+                answer = update_slack_message_and_return_streamed_response(response, channel_id, thinking_message_ts)
 
                 # Final update to replace "Thinking..." with the actual response
                 update_slack_message(channel_id, thinking_message_ts, answer)
@@ -90,7 +90,7 @@ def lambda_handler(event, context):
         }
 
 
-def print_and_return_streamed_response(response, channel_id, message_ts):
+def update_slack_message_and_return_streamed_response(response, channel_id, message_ts):
     final_output = ""
     word_count = 0
 
