@@ -1,5 +1,9 @@
 # Slack-Bot-LLM-Serverless
 
+[![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://opensource.org/)
+
+![Slack-LLM-Bot](https://github.com/MartinWie/Slack-Bot-LLM-Serverless/blob/master/slack-llm-bot.png)
+
 A Slack bot with LLM support, using the Slack Events API, AWS Lambda, written in Python, utilizing the Serverless
 framework.
 
