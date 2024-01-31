@@ -141,12 +141,24 @@ pytest -m unit
 
 ## Todos's
 
+- Mini Update Readme.md
+- Fix Slack formatting
 - Add threading
-- Use full thread as input(make sure to use max tokens)
-- Introduce env var file + check
+- Use the full thread as input(make sure to use max tokens to deliver a true chat experience)
 - Update dependencies
-- Switch to Slack SDK?
+- URL reading
 - Image generation
-- Intention mapping(chat, ticket, image)
-- Implement special commands for prompts
-- Add support for other LLMs
+- Intention mapping (summarize thread, create ticket, URL reading , image generation)
+- full rewrite Readme.md
+- Implement special commands for prompts?
+- Introduce env var file + check
+- Switch to Slack SDK?
+- Add support for external knowledgebase(e.g. Confluence)
+- Add support for other LLMs.
+
+## Support me :heart: :star: :money_with_wings:
+
+If this project provided value, and you want to give something back, you can give the repo a star or support by buying
+me a coffee.
+
+<a href="https://buymeacoffee.com/MartinWie" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" width="170"></a>
