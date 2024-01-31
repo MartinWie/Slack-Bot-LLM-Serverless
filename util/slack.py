@@ -16,20 +16,24 @@ def send_slack_request(url, data):
 
 
 # Function to update a Slack message
-def update_slack_message(channel_id, timestamp, new_text):
+def update_slack_message(channel_id, timestamp, new_text, thread_ts=None):
     SLACK_UPDATE_URL = "https://slack.com/api/chat.update"
     data = {
         "channel": channel_id,
         "ts": timestamp,
         "text": new_text
     }
+    # If thread_ts is provided, add it to the data
+    if thread_ts:
+        data["thread_ts"] = thread_ts
+
     response = send_slack_request(SLACK_UPDATE_URL, data)
     # log_to_aws(LogLevel.INFO, f'Response from Slack on updating message: {response}')
     return response
 
 
 # Function to send a text response to Slack
-def send_text_response(event, response_text):
+def send_text_response(event, response_text, thread_ts=None):
     SLACK_URL = "https://slack.com/api/chat.postMessage"
     channel_id = event["event"]["channel"]
     data = {
@@ -38,6 +42,10 @@ def send_text_response(event, response_text):
         "text": response_text,
         "link_names": True
     }
+    # If thread_ts is provided, add it to the data to make the message a reply in a thread
+    if thread_ts:
+        data["thread_ts"] = thread_ts
+
     return send_slack_request(SLACK_URL, data)
 
 
