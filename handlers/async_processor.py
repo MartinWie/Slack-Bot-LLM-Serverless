@@ -2,13 +2,13 @@ import json
 
 from util.ai_util import openai_request
 from util.logger import log_to_aws, LogLevel
-from util.slack import send_text_response, update_slack_message
+from util.slack import send_text_response, update_slack_message, markdown_to_slack
 
 
 def lambda_handler(event, context):
     try:
         log_to_aws(LogLevel.INFO, "Async Processor Lambda function invoked!")
-        log_to_aws(LogLevel.INFO, f"Event: {event}")
+        # log_to_aws(LogLevel.INFO, f"Event: {event}")
 
         # Parse the incoming event body (assuming it's JSON)
         event_body = json.loads(event.get('body', '{}'))
@@ -63,8 +63,8 @@ def update_slack_message_and_return_streamed_response(response, channel_id, mess
 
                 # Check for sentence-ending punctuation or new lines
                 if char in ['.', '!', '?', ','] or char == '\n':
-                    update_slack_message(channel_id, message_ts, final_output.strip())
+                    update_slack_message(channel_id, message_ts, markdown_to_slack(final_output.strip()))
 
-    update_slack_message(channel_id, message_ts, final_output.strip())
+    update_slack_message(channel_id, message_ts, markdown_to_slack(final_output.strip()))
 
     return final_output

@@ -2,8 +2,6 @@ import os
 import re
 import urllib.request
 
-from util.logger import log_to_aws, LogLevel
-
 
 # Generic function to send a request to Slack API
 def send_slack_request(url, data):
@@ -26,7 +24,7 @@ def update_slack_message(channel_id, timestamp, new_text):
         "text": new_text
     }
     response = send_slack_request(SLACK_UPDATE_URL, data)
-    log_to_aws(LogLevel.INFO, f'Response from Slack on updating message: {response}')
+    # log_to_aws(LogLevel.INFO, f'Response from Slack on updating message: {response}')
     return response
 
 

@@ -145,8 +145,6 @@ pytest -m unit
 
 ## Todos's
 
-- Mini Update Readme.md
-- Fix Slack formatting
 - Add threading
 - Use the full thread as input(make sure to use max tokens to deliver a true chat experience)
 - Update dependencies
