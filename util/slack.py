@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import urllib.request
@@ -47,6 +48,23 @@ def send_text_response(event, response_text, thread_ts=None):
         data["thread_ts"] = thread_ts
 
     return send_slack_request(SLACK_URL, data)
+
+
+# Function to fetch thread messages from Slack
+def get_thread_messages(channel_id, thread_ts):
+    bot_token = os.environ.get("SLACK_BOT_TOKEN")
+    url = f"https://slack.com/api/conversations.replies?channel={channel_id}&ts={thread_ts}"
+
+    request = urllib.request.Request(url, method="GET")
+    request.add_header("Authorization", f"Bearer {bot_token}")
+    request.add_header("Content-Type", "application/x-www-form-urlencoded")
+
+    with urllib.request.urlopen(request) as response:
+        data = json.loads(response.read().decode())
+        if data['ok']:
+            return data['messages']
+        else:
+            raise Exception(f"Error fetching thread messages: {data['error']}")
 
 
 def markdown_to_slack(md_text):

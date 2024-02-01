@@ -1,8 +1,8 @@
 import json
 
-from util.ai_util import openai_request
+from util.ai_util import openai_request, prepend_conversation_history, CURRENT_GLOBAL_TOKEN_LIMIT
 from util.logger import log_to_aws, LogLevel
-from util.slack import send_text_response, update_slack_message, markdown_to_slack
+from util.slack import send_text_response, update_slack_message, markdown_to_slack, get_thread_messages
 
 
 def lambda_handler(event, context):
@@ -27,13 +27,31 @@ def lambda_handler(event, context):
             channel_id = event_body['event']['channel']
             thread_ts = event_body['event'].get('thread_ts', None) or event_body['event'].get('ts', None)
 
+            # Initialize the list to store conversation strings
+            conversation_history = []
+
+            # Fetch all messages in the thread
+            thread_messages = get_thread_messages(channel_id, thread_ts)
+            for message in thread_messages:
+                # Add each message and its sender to the conversation history
+                sender = "Bot" if 'bot_id' in message else "Human"
+                conversation_history.append(f"{sender} input: {message.get('text', '')}")
+
+            # Use the helper function to prepend conversation history
+            # Assuming `token_limit` is defined and represents the maximum token limit
+            prepended_input = prepend_conversation_history(
+                conversation_history,
+                message_text,
+                CURRENT_GLOBAL_TOKEN_LIMIT / 4
+            )
+
             # Check if the message mentions the bot (assumed bot ID: 'U06GBCG8E9F' or name 'Leela')
-            if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text:
+            if '<@U06GBCG8E9F>' in prepended_input or 'Leela' in prepended_input:
                 # Send "Thinking..." message and process the message
                 thinking_message_response = send_text_response(event_body, "Thinking...", thread_ts=thread_ts)
                 thinking_message_ts = json.loads(thinking_message_response)['ts']
 
-                response = openai_request(message_text)
+                response = openai_request(prepended_input)
                 answer = update_slack_message_and_return_streamed_response(response, channel_id, thinking_message_ts,
                                                                            thread_ts)
 
