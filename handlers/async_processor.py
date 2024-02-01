@@ -13,7 +13,6 @@ def lambda_handler(event, context):
         # Parse the incoming event body (assuming it's JSON)
         event_body = json.loads(event.get('body', '{}'))
 
-        # Check if 'event' exists in the parsed body and process it
         if 'event' in event_body:
             # Check if the event is from a bot
             if 'bot_id' in event_body['event']:
@@ -27,36 +26,39 @@ def lambda_handler(event, context):
             channel_id = event_body['event']['channel']
             thread_ts = event_body['event'].get('thread_ts', None) or event_body['event'].get('ts', None)
 
-            # Initialize the list to store conversation strings
-            conversation_history = []
+            # Check if the message mentions the bot
+            if '<@U06GBCG8E9F>' in message_text or 'Leela' in message_text or 'leela' in message_text:
+                # Initialize the list to store conversation strings
+                conversation_history = []
 
-            # Fetch all messages in the thread
-            thread_messages = get_thread_messages(channel_id, thread_ts)
-            for message in thread_messages:
-                # Add each message and its sender to the conversation history
-                sender = "Bot" if 'bot_id' in message else "Human"
-                conversation_history.append(f"{sender} input: {message.get('text', '')}")
+                # Fetch all messages in the thread
+                thread_messages = get_thread_messages(channel_id, thread_ts)
+                for message in thread_messages:
+                    # Add each message and its sender to the conversation history
+                    sender = "Bot" if 'bot_id' in message else "Human"
+                    conversation_history.append(f"{sender} input: {message.get('text', '')}")
 
-            # Use the helper function to prepend conversation history
-            # Assuming `token_limit` is defined and represents the maximum token limit
-            prepended_input = prepend_conversation_history(
-                conversation_history,
-                message_text,
-                CURRENT_GLOBAL_TOKEN_LIMIT / 4
-            )
+                # Use the helper function to prepend conversation history
+                prepended_input = prepend_conversation_history(
+                    conversation_history,
+                    message_text,
+                    CURRENT_GLOBAL_TOKEN_LIMIT / 4
+                )
 
-            # Check if the message mentions the bot (assumed bot ID: 'U06GBCG8E9F' or name 'Leela')
-            if '<@U06GBCG8E9F>' in prepended_input or 'Leela' in prepended_input:
                 # Send "Thinking..." message and process the message
                 thinking_message_response = send_text_response(event_body, "Thinking...", thread_ts=thread_ts)
                 thinking_message_ts = json.loads(thinking_message_response)['ts']
 
                 response = openai_request(prepended_input)
-                answer = update_slack_message_and_return_streamed_response(response, channel_id, thinking_message_ts,
-                                                                           thread_ts)
+                answer = update_slack_message_and_return_streamed_response(
+                    response,
+                    channel_id,
+                    thinking_message_ts,
+                    thread_ts
+                )
 
                 # Final update to replace "Thinking..." with the actual response
-                update_slack_message(channel_id, thinking_message_ts, answer, thread_ts)
+                update_slack_message(channel_id, thinking_message_ts, markdown_to_slack(answer), thread_ts)
 
         return {
             "statusCode": 200,

@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import urllib.request
 
 
@@ -67,7 +66,25 @@ def get_thread_messages(channel_id, thread_ts):
             raise Exception(f"Error fetching thread messages: {data['error']}")
 
 
+import re
+
+
 def markdown_to_slack(md_text):
+    # Temporary replacement for code blocks and inline code
+    code_blocks = []
+    inline_codes = []
+
+    def replace_code_block(match):
+        code_blocks.append(match.group(0))
+        return f"CODE_BLOCK_{len(code_blocks) - 1}"
+
+    def replace_inline_code(match):
+        inline_codes.append(match.group(0))
+        return f"INLINE_CODE_{len(inline_codes) - 1}"
+
+    md_text = re.sub(r"(```.*?```)", replace_code_block, md_text, flags=re.DOTALL)
+    md_text = re.sub(r"(`.+?`)", replace_inline_code, md_text)
+
     # Convert bold
     md_text = re.sub(r"\*\*(.+?)\*\*", r"*\1*", md_text)
     md_text = re.sub(r"__(.+?)__", r"*\1*", md_text)
@@ -76,20 +93,28 @@ def markdown_to_slack(md_text):
     md_text = re.sub(r"\*(.+?)\*", r"_\1_", md_text)
     md_text = re.sub(r"_(.+?)_", r"_\1_", md_text)
 
-    # Convert inline code
-    md_text = re.sub(r"`(.+?)`", r"`\1`", md_text)
-
-    # Convert code blocks
-    md_text = re.sub(r"```(.+?)```", r"```\1```", md_text)
-    md_text = re.sub(r"~~~(.+?)~~~", r"```\1```", md_text)
-
-    # Convert blockquotes
-    md_text = re.sub(r"^>\s*(.+?)$", r">\1", md_text, flags=re.MULTILINE)
+    # Convert strikethrough
+    md_text = re.sub(r"~~(.+?)~~", r"~\1~", md_text)
 
     # Convert links
     md_text = re.sub(r"\[(.+?)\]\((.+?)\)", r"<\2|\1>", md_text)
 
-    # Convert headers (Markdown headers are not supported in Slack. Convert them to bold)
+    # Convert headings to bold
     md_text = re.sub(r"^#{1,6}\s*(.+)$", r"*\1*", md_text, flags=re.MULTILINE)
+
+    # Convert ordered lists
+    md_text = re.sub(r"^(\d+\.)\s*(.+)$", r"\1 \2", md_text, flags=re.MULTILINE)
+
+    # Convert bullet lists
+    md_text = re.sub(r"^(\*|\+)\s*(.+)$", r"*\2", md_text, flags=re.MULTILINE)
+
+    # Convert blockquotes
+    md_text = re.sub(r"^>\s*(.+)$", r"_>\1_", md_text, flags=re.MULTILINE)
+
+    # Restore code blocks and inline code
+    for i, code in enumerate(code_blocks):
+        md_text = md_text.replace(f"CODE_BLOCK_{i}", code)
+    for i, code in enumerate(inline_codes):
+        md_text = md_text.replace(f"INLINE_CODE_{i}", code)
 
     return md_text

@@ -145,7 +145,6 @@ pytest -m unit
 
 ## Todos's
 
-- Use the full thread as input(make sure to use max tokens to deliver a true chat experience)
 - Update dependencies
 - URL reading
 - Image generation
