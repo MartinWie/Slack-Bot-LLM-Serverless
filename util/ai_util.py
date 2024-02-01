@@ -7,12 +7,14 @@ import tiktoken
 from config.config import OPENAI_API_KEY
 from util.logger import log_to_aws, LogLevel
 
+CURRENT_GLOBAL_TOKEN_LIMIT = 120000
+
 
 def openai_request(
         prompt: str,
         model: str = "gpt-4-0125-preview",
         temperature: float = 0.3,
-        token_limit: int = 120000
+        token_limit: int = CURRENT_GLOBAL_TOKEN_LIMIT
 ):
     if get_token_amount_from_string(prompt) > token_limit:
         log_to_aws(
