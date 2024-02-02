@@ -145,7 +145,6 @@ pytest -m unit
 
 ## Todos's
 
-- Update dependencies
 - URL reading
 - Image generation
 - Intention mapping (summarize thread, create ticket, URL reading , image generation)
