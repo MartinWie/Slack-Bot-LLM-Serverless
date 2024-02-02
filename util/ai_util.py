@@ -3,6 +3,7 @@ import string
 
 import openai
 import tiktoken
+from openai import OpenAI
 
 from config.config import OPENAI_API_KEY
 from util.logger import log_to_aws, LogLevel
@@ -22,46 +23,36 @@ def openai_request(
             f"Token amount of {get_token_amount_from_string(prompt)} is to big. Stay below {token_limit}!"
         )
         exit()
+
+    client = OpenAI(api_key=OPENAI_API_KEY)
+
     try:
-        openai.api_key = OPENAI_API_KEY
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=model,
             temperature=temperature,
-            stream=True,
             messages=[
                 {"role": "system",
                  "content": "Help answer user questions, provide solutions step by step. Keep it short and concise."},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            stream=True
         )
         return response
 
-    except openai.error.APIError as e:
-        log_to_aws(LogLevel.INFO, f"Error with the OpenAI API. Details:{e}")
+    except openai.APIError as e:
+        log_to_aws(LogLevel.ERROR, f"Error with the OpenAI API. Details:{e}")
         return None
 
-    except openai.error.RateLimitError as e:
-        log_to_aws(LogLevel.INFO, f"Rate limit exceeded. Please wait before making further requests. Details: {e}")
+    except openai.RateLimitError as e:
+        log_to_aws(LogLevel.ERROR, f"Rate limit exceeded. Please wait before making further requests. Details: {e}")
         return None
 
-    except openai.error.APIConnectionError as e:
-        log_to_aws(LogLevel.INFO, f"Connection error. Please check your internet connection. Details:{e}")
-        return None
-
-    except openai.error.InvalidRequestError as e:
-        log_to_aws(LogLevel.INFO, f"Invalid request. Check your parameters. Details:{e}")
-        return None
-
-    except openai.error.AuthenticationError as e:
-        log_to_aws(LogLevel.INFO, f"Authentication error. Please check your OpenAI API key. Details:{e}")
-        return None
-
-    except openai.error.ServiceUnavailableError as e:
-        log_to_aws(LogLevel.INFO, f"OpenAI service is currently unavailable. Please try again later. Details:{e}")
+    except openai.AuthenticationError as e:
+        log_to_aws(LogLevel.ERROR, f"Authentication error. Please check your OpenAI API key. Details:{e}")
         return None
 
     except Exception as e:
-        log_to_aws(LogLevel.INFO, f"An unexpected error occurred:{e}")
+        log_to_aws(LogLevel.ERROR, f"An unexpected error occurred:{e}")
         return None
 
 

@@ -6,12 +6,12 @@ from util.slack import send_text_response, update_slack_message, markdown_to_sla
 
 
 def lambda_handler(event, context):
-    try:
-        log_to_aws(LogLevel.INFO, "Async Processor Lambda function invoked!")
-        # log_to_aws(LogLevel.INFO, f"Event: {event}")
+    log_to_aws(LogLevel.INFO, "Async Processor Lambda function invoked!")
+    # log_to_aws(LogLevel.INFO, f"Event: {event}")
 
-        # Parse the incoming event body (assuming it's JSON)
-        event_body = json.loads(event.get('body', '{}'))
+    # Parse the incoming event body (assuming it's JSON)
+    event_body = json.loads(event.get('body', '{}'))
+    try:
 
         if 'event' in event_body:
             # Check if the event is from a bot
@@ -50,6 +50,10 @@ def lambda_handler(event, context):
                 thinking_message_ts = json.loads(thinking_message_response)['ts']
 
                 response = openai_request(prepended_input)
+
+                if response is None:
+                    raise ValueError("The response from OpenAI was None.")
+
                 answer = update_slack_message_and_return_streamed_response(
                     response,
                     channel_id,
@@ -67,7 +71,8 @@ def lambda_handler(event, context):
 
     except Exception as e:
         log_to_aws(LogLevel.ERROR, f"Error occurred: {e}")
-        send_text_response(event, "Leela müde, Leela schlafen", thread_ts=thread_ts)
+        if 'event' in event_body:
+            send_text_response(event_body, "Leela müde, Leela schlafen", thread_ts=thread_ts)
         return {
             "statusCode": 500,
             "body": "Error occurred in processing"
@@ -77,9 +82,9 @@ def lambda_handler(event, context):
 def update_slack_message_and_return_streamed_response(response, channel_id, message_ts, thread_ts=None):
     final_output = ""
 
-    for event in response:
-        if event['choices'][0]['delta'].get('content') is not None:
-            event_text = event['choices'][0]['delta']['content']
+    for chunk in response:
+        if chunk.choices[0].delta.content is not None:
+            event_text = chunk.choices[0].delta.content
 
             for char in event_text:
                 final_output += char
