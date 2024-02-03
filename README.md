@@ -145,9 +145,10 @@ pytest -m unit
 
 ## Todos's
 
-- Image generation
-- Intention mapping (summarize thread, create ticket, URL reading , image generation)
-- Web searching based on intend
+- Intention mapping
+    - Web searching
+    - Image generation
+    - create ticket
 - Implement special commands for prompts?
 - Add support for external knowledgebase(e.g. Confluence)
 - full rewrite Readme.md
