@@ -35,7 +35,9 @@ def openai_request(
             temperature=temperature,
             messages=[
                 {"role": "system",
-                 "content": "Help answer user questions, provide solutions step by step. Keep it short and concise."},
+                 "content": "Help answer user questions, provide solutions step by step. Keep it short and concise. "
+                            "When a user asks for info about an URL dont worry about it your input automatically "
+                            "includes the websites content."},
                 {"role": "user", "content": prompt}
             ],
             stream=stream_response

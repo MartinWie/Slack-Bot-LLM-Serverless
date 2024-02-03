@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import urllib.request
 
 
@@ -17,7 +18,7 @@ def send_slack_request(url, data):
 
 # Function to update a Slack message
 def update_slack_message(channel_id, timestamp, new_text, thread_ts=None):
-    SLACK_UPDATE_URL = "https://slack.com/api/chat.update"
+    slack_update_url = "https://slack.com/api/chat.update"
     data = {
         "channel": channel_id,
         "ts": timestamp,
@@ -27,7 +28,7 @@ def update_slack_message(channel_id, timestamp, new_text, thread_ts=None):
     if thread_ts:
         data["thread_ts"] = thread_ts
 
-    response = send_slack_request(SLACK_UPDATE_URL, data)
+    response = send_slack_request(slack_update_url, data)
     # log_to_aws(LogLevel.INFO, f'Response from Slack on updating message: {response}')
     return response
 
@@ -66,9 +67,6 @@ def get_thread_messages(channel_id, thread_ts):
             raise Exception(f"Error fetching thread messages: {data['error']}")
 
 
-import re
-
-
 def markdown_to_slack(md_text):
     # Temporary replacement for code blocks and inline code
     code_blocks = []
@@ -103,10 +101,11 @@ def markdown_to_slack(md_text):
     md_text = re.sub(r"^#{1,6}\s*(.+)$", r"*\1*", md_text, flags=re.MULTILINE)
 
     # Convert ordered lists
-    md_text = re.sub(r"^(\d+\.)\s*(.+)$", r"\1 \2", md_text, flags=re.MULTILINE)
+    md_text = re.sub(r"\n(\d+)\.\s*(.+)$", r"\n\1. \2", md_text, flags=re.MULTILINE)
 
     # Convert bullet lists
-    md_text = re.sub(r"^(\*|\+)\s*(.+)$", r"*\2", md_text, flags=re.MULTILINE)
+    md_text = re.sub(r"\n\*(.+)$", r"\n- \1", md_text, flags=re.MULTILINE)
+    md_text = re.sub(r"\n\+(.+)$", r"\n- \1", md_text, flags=re.MULTILINE)
 
     # Convert blockquotes
     md_text = re.sub(r"^>\s*(.+)$", r"_>\1_", md_text, flags=re.MULTILINE)
