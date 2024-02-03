@@ -145,14 +145,14 @@ pytest -m unit
 
 ## Todos's
 
-- URL reading
 - Image generation
 - Intention mapping (summarize thread, create ticket, URL reading , image generation)
-- full rewrite Readme.md
+- Web searching based on intend
 - Implement special commands for prompts?
+- Add support for external knowledgebase(e.g. Confluence)
+- full rewrite Readme.md
 - Introduce env var file + check
 - Switch to Slack SDK?
-- Add support for external knowledgebase(e.g. Confluence)
 - Add support for other LLMs.
 
 ## Support me :heart: :star: :money_with_wings:
