@@ -1,6 +1,7 @@
 import json
+import re
 
-from util.ai_util import openai_request, prepend_conversation_history, CURRENT_GLOBAL_TOKEN_LIMIT
+from util.ai_util import openai_request, prepend_conversation_history, CURRENT_GLOBAL_TOKEN_LIMIT, summarize_webpage
 from util.logger import log_to_aws, LogLevel
 from util.slack import send_text_response, update_slack_message, markdown_to_slack, get_thread_messages
 
@@ -31,6 +32,27 @@ def lambda_handler(event, context):
                 # Initialize the list to store conversation strings
                 conversation_history = []
 
+                # Check for URLs in the message text
+                urls = re.findall(r'https?://\S+', message_text)
+                # If URLs exist, add them to a list
+                url_list = []
+                if urls:
+                    url_list.extend(urls)
+
+                url_data = ""
+
+                current_message_ts = None
+
+                if len(url_list) > 0:
+                    message_response = send_text_response(
+                        event_body,
+                        "Reading URL...",
+                        thread_ts=thread_ts
+                    )
+                    current_message_ts = json.loads(message_response)['ts']
+                    for url in url_list:
+                        url_data + "\n" + summarize_webpage(url)
+
                 # Fetch all messages in the thread
                 thread_messages = get_thread_messages(channel_id, thread_ts)
                 for message in thread_messages:
@@ -45,11 +67,26 @@ def lambda_handler(event, context):
                     CURRENT_GLOBAL_TOKEN_LIMIT / 4
                 )
 
-                # Send "Thinking..." message and process the message
-                thinking_message_response = send_text_response(event_body, "Thinking...", thread_ts=thread_ts)
-                thinking_message_ts = json.loads(thinking_message_response)['ts']
+                loading_message_response = None
+                loading_message_text = "Thinking..."
+                
+                if current_message_ts is not None:
+                    loading_message_response = update_slack_message(
+                        channel_id,
+                        current_message_ts,
+                        loading_message_text,
+                        thread_ts
+                    )
+                else:
+                    loading_message_response = send_text_response(
+                        event_body,
+                        loading_message_text,
+                        thread_ts=thread_ts
+                    )
 
-                response = openai_request(prepended_input)
+                thinking_message_ts = json.loads(loading_message_response)['ts']
+
+                response = openai_request(prepended_input + url_data)
 
                 if response is None:
                     raise ValueError("The response from OpenAI was None.")
@@ -61,7 +98,6 @@ def lambda_handler(event, context):
                     thread_ts
                 )
 
-                # Final update to replace "Thinking..." with the actual response
                 update_slack_message(channel_id, thinking_message_ts, markdown_to_slack(answer), thread_ts)
 
         return {
