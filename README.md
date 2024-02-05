@@ -152,7 +152,7 @@ pytest -m unit
 - Implement special commands for prompts?
 - Add support for external knowledgebase(e.g. Confluence)
 - full rewrite Readme.md
-- Introduce env var file + check
+- Introduce env var file vs Parameterstore reading + fix Env var check in main
 - Switch to Slack SDK?
 - Add support for other LLMs.
 
