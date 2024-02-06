@@ -4,6 +4,8 @@ from util.logger import log_to_aws, LogLevel
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
+allowed_intends = ["Websearch", "Chat"]
+
 if OPENAI_API_KEY is None:
     log_to_aws(
         LogLevel.ERROR,
