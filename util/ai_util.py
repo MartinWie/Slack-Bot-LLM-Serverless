@@ -152,6 +152,8 @@ def get_intent(possible_intents: list, text: str):
     # Extract and return the intet
     intent = response.choices[0].message.content
 
+    log_to_aws(LogLevel.INFO, f"Checked intent and found:{intent}")
+
     if intent in possible_intents:
         return intent
     else:

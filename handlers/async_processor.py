@@ -1,7 +1,9 @@
 import json
 import re
 
-from util.ai_util import openai_request, prepend_conversation_history, CURRENT_GLOBAL_TOKEN_LIMIT, summarize_webpage
+from config.config import allowed_intends
+from util.ai_util import openai_request, prepend_conversation_history, CURRENT_GLOBAL_TOKEN_LIMIT, summarize_webpage, \
+    get_intent, google_search
 from util.logger import log_to_aws, LogLevel
 from util.slack import send_text_response, update_slack_message, markdown_to_slack, get_thread_messages
 
@@ -51,25 +53,11 @@ def lambda_handler(event, context):
                     )
                     current_message_ts = json.loads(message_response)['ts']
                     for url in url_list:
-                        url_data + "\n" + summarize_webpage(url)
-
-                # Fetch all messages in the thread
-                thread_messages = get_thread_messages(channel_id, thread_ts)
-                for message in thread_messages:
-                    # Add each message and its sender to the conversation history
-                    sender = "Bot" if 'bot_id' in message else "Human"
-                    conversation_history.append(f"{sender} input: {message.get('text', '')}")
-
-                # Use the helper function to prepend conversation history
-                prepended_input = prepend_conversation_history(
-                    conversation_history,
-                    message_text,
-                    CURRENT_GLOBAL_TOKEN_LIMIT / 4
-                )
+                        url_data += "\n" + summarize_webpage(url)
 
                 loading_message_response = None
                 loading_message_text = "Thinking..."
-                
+
                 if current_message_ts is not None:
                     loading_message_response = update_slack_message(
                         channel_id,
@@ -86,6 +74,29 @@ def lambda_handler(event, context):
 
                 thinking_message_ts = json.loads(loading_message_response)['ts']
 
+                # Get intet
+                intent = get_intent(allowed_intends, message_text)
+
+                if intent is not None and intent == 'Websearch':
+                    websearch_links = google_search(message_text)
+                    for url in websearch_links:
+                        url_data += "\n" + summarize_webpage(url)
+
+                # Fetch all messages in the thread
+                thread_messages = get_thread_messages(channel_id, thread_ts)
+                for message in thread_messages:
+                    # Add each message and its sender to the conversation history
+                    sender = "Bot" if 'bot_id' in message else "Human"
+                    conversation_history.append(f"{sender} input: {message.get('text', '')}")
+
+                # Use the helper function to prepend conversation history
+                prepended_input = prepend_conversation_history(
+                    conversation_history,
+                    message_text,
+                    CURRENT_GLOBAL_TOKEN_LIMIT / 4
+                )
+
+                # Get final response
                 response = openai_request(prepended_input + url_data)
 
                 if response is None:
