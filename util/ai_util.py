@@ -1,5 +1,6 @@
 import json
 import string
+from urllib.parse import urlencode
 
 import openai
 import requests
@@ -135,6 +136,7 @@ def summarize_webpage(url: str):
 
 
 def get_intent(possible_intents: list, text: str):
+    # Good starting intents: Websearch,InternalWiki,Chat
     concatenated_intents = ','.join(possible_intents)
 
     # Check if text is too long and trim if necessary
@@ -152,5 +154,26 @@ def get_intent(possible_intents: list, text: str):
 
     if intent in possible_intents:
         return intent
+    else:
+        return None
+
+
+def google_search(query: str):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+    params = {'q': query}
+    response = requests.get("https://www.google.com/search?" + urlencode(params), headers=headers)
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        result_block = soup.find_all('div', attrs={'class': 'g'})
+        links = []
+        for result in result_block:
+            link = result.find('a', href=True)
+            if link:
+                links.append(link['href'])
+            if len(links) == 3:
+                break
+        return links
     else:
         return None
