@@ -132,3 +132,25 @@ def summarize_webpage(url: str):
         return f"Here is the summary for {url}: " + summary_response.choices[0].message.content
     else:
         return "Failed to get a summary for website..."
+
+
+def get_intent(possible_intents: list, text: str):
+    concatenated_intents = ','.join(possible_intents)
+
+    # Check if text is too long and trim if necessary
+    if len(text) > CURRENT_GLOBAL_TOKEN_LIMIT:
+        text = text[:CURRENT_GLOBAL_TOKEN_LIMIT - 100]
+
+    # Create a prompt for intent gathering
+    intent_prompt = f"You need to detect the intended action. Here is a list of all possible intents: {concatenated_intents}. Only respond with the intend you believe the users has. Just respond with this one word, no more and no less. Here is the text that needs to be checked: {text}"
+
+    # Use openai_request to get the intent
+    response = openai_request(intent_prompt, stream_response=False)
+
+    # Extract and return the intet
+    intent = response.choices[0].message.content
+
+    if intent in possible_intents:
+        return intent
+    else:
+        return None
