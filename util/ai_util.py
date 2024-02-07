@@ -199,7 +199,7 @@ def duckduckgo_search(query: str):
                 redirect_url = 'https:' + redirect_url
             final_url = requests.get(redirect_url, headers=headers, allow_redirects=True).url
             links.append(final_url)
-            if len(links) == 3:
+            if len(links) == 1:
                 break
         log_to_aws(LogLevel.INFO, f"Checked web and found:{links}")
         return links

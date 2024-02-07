@@ -145,6 +145,7 @@ pytest -m unit
 
 ## Todos's
 
+- Improve websearch by generating a more precise question for the search
 - Intention mapping
     - Confluence content search(https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/)
     - Image generation
