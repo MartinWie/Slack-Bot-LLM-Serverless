@@ -146,7 +146,6 @@ pytest -m unit
 ## Todos's
 
 - Intention mapping
-    - Web searching
     - Confluence content search(https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/)
     - Image generation
     - create ticket

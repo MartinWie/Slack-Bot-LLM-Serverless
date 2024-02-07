@@ -1,6 +1,5 @@
 import json
 import string
-from urllib.parse import urlencode
 
 import openai
 import requests
@@ -38,7 +37,8 @@ def openai_request(
                 {"role": "system",
                  "content": "Help answer user questions, provide solutions step by step. Keep it short and concise. "
                             "When a user asks for info about an URL dont worry about it your input automatically "
-                            "includes the websites content."},
+                            "includes the websites content. Dont Mention your training data date and trust that the "
+                            "context contains all relevant information! Keep your answers short, friendly and concise."},
                 {"role": "user", "content": prompt}
             ],
             stream=stream_response
@@ -162,20 +162,46 @@ def get_intent(possible_intents: list, text: str):
 
 def google_search(query: str):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-    params = {'q': query}
-    response = requests.get("https://www.google.com/search?" + urlencode(params), headers=headers)
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
+    }
+    url = f'https://www.google.com/search?q={query}&ie=utf-8&oe=utf-8&num=10'
+    response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
-        result_block = soup.find_all('div', attrs={'class': 'g'})
+        allData = soup.find_all("div", {"class": "g"})
         links = []
-        for result in result_block:
-            link = result.find('a', href=True)
-            if link:
-                links.append(link['href'])
+
+        for data in allData:
+            link_element = data.find('a', href=True)
+            if link_element:
+                link = link_element['href']
+                links.append(link)
+                if len(links) == 3:
+                    break
+        log_to_aws(LogLevel.INFO, f"Checked web and found:{links}")
+        return links
+    else:
+        return None
+
+
+def duckduckgo_search(query: str):
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    params = {'q': query}
+    response = requests.get("https://duckduckgo.com/html/", params=params, headers=headers)
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
+        links = []
+        for link in soup.find_all('a', href=True, class_='result__url'):
+            redirect_url = link['href']
+            if redirect_url.startswith('//'):
+                redirect_url = 'https:' + redirect_url
+            final_url = requests.get(redirect_url, headers=headers, allow_redirects=True).url
+            links.append(final_url)
             if len(links) == 3:
                 break
+        log_to_aws(LogLevel.INFO, f"Checked web and found:{links}")
         return links
     else:
         return None

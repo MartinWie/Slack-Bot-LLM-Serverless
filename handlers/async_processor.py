@@ -1,7 +1,6 @@
 import json
 import re
 
-from config.config import allowed_intends
 from util.ai_util import openai_request, prepend_conversation_history, CURRENT_GLOBAL_TOKEN_LIMIT, summarize_webpage, \
     get_intent, google_search
 from util.logger import log_to_aws, LogLevel
@@ -11,6 +10,8 @@ from util.slack import send_text_response, update_slack_message, markdown_to_sla
 def lambda_handler(event, context):
     log_to_aws(LogLevel.INFO, "Async Processor Lambda function invoked!")
     # log_to_aws(LogLevel.INFO, f"Event: {event}")
+
+    allowed_intends = ["Websearch", "Chat"]
 
     # Parse the incoming event body (assuming it's JSON)
     event_body = json.loads(event.get('body', '{}'))
@@ -78,9 +79,15 @@ def lambda_handler(event, context):
                 intent = get_intent(allowed_intends, message_text)
 
                 if intent is not None and intent == 'Websearch':
+                    update_slack_message(
+                        channel_id,
+                        thinking_message_ts,
+                        "Searching the web...",
+                        thread_ts
+                    )
                     websearch_links = google_search(message_text)
                     for url in websearch_links:
-                        url_data += "\n" + summarize_webpage(url)
+                        url_data += "\n Websearch results for the user question: " + summarize_webpage(url)
 
                 # Fetch all messages in the thread
                 thread_messages = get_thread_messages(channel_id, thread_ts)
