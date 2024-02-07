@@ -35,10 +35,11 @@ def openai_request(
             temperature=temperature,
             messages=[
                 {"role": "system",
-                 "content": "Help answer user questions, provide solutions step by step. Keep it short and concise. "
+                 "content": "Help answer user questions short and concise, provide solutions step by step. Keep it "
+                            "short and concise."
                             "When a user asks for info about an URL dont worry about it your input automatically "
                             "includes the websites content. Dont Mention your training data date and trust that the "
-                            "context contains all relevant information! Keep your answers short, friendly and concise."},
+                            "context contains all relevant information! Keep your answers short and concise."},
                 {"role": "user", "content": prompt}
             ],
             stream=stream_response
@@ -177,7 +178,7 @@ def google_search(query: str):
             if link_element:
                 link = link_element['href']
                 links.append(link)
-                if len(links) == 3:
+                if len(links) == 1:
                     break
         log_to_aws(LogLevel.INFO, f"Checked web and found:{links}")
         return links
