@@ -1,3 +1,6 @@
+from unittest.mock import MagicMock
+
+import boto3
 import pytest
 
 from handlers.main import lambda_handler
@@ -5,10 +8,20 @@ from handlers.main import lambda_handler
 
 @pytest.mark.unit
 def test_lambda_handler():
-    event = {}  # Define your test event here
-    context = None  # Define your test context here
+    # Create a mock Lambda client
+    lambda_client = boto3.client('lambda')
+    lambda_client.invoke = MagicMock(return_value={'Payload': 'mock_payload'})
+
+    event = {
+        'headers': {
+            'X-Slack-Signature': 'test_signature',
+            'X-Slack-Request-Timestamp': 'test_timestamp'
+        },
+        'body': 'test_body'
+    }
+
+    context = {}
 
     result = lambda_handler(event, context)
 
-    # Add your assertions to check the output of the lambda_handler function
     assert result["body"] is not None
