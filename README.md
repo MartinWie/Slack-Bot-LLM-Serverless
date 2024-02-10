@@ -145,12 +145,16 @@ pytest -m unit
 
 ## Todos's
 
-- Improve websearch by generating a more precise question for the search
-- Intention mapping
-    - Confluence content search(https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/)
-    - Image generation
-    - create ticket
-- Implement special commands for prompts?
+- Verify that request are sent form Slack (serverless function auth)
+- Improve websearch by generating a more precise question for the search(include history data to come up with a search
+  query)
+- Add marker for web search responses "\[Web-Search]"
+- Intention implementation: Confluence content
+  search(https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/)
+- Refactor / cleanup "async_processor.py"
+- Intention implementation: Image generation
+- Intention implementation: create ticket
+- Implement special commands for prompts(move web search into this)?
 - Add support for external knowledgebase(e.g. Confluence)
 - full rewrite Readme.md
 - Introduce env var file vs Parameterstore reading + fix Env var check in main
