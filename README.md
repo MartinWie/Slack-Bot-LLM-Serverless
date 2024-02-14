@@ -145,6 +145,7 @@ pytest -m unit
 
 ## Todos's
 
+- Formatting breaks some links, do the same thing as with code blocks
 - Improve websearch by generating a more precise question for the search(include history data to come up with a search
   query)
 - Add marker for web search responses "\[Web-Search]"
